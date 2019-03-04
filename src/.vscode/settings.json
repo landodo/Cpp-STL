@@ -1,0 +1,9 @@
+{
+  "files.associations": {
+    "*.tex": "tex",
+    "map": "cpp",
+    "new": "cpp",
+    "vector": "cpp",
+    "*.tcc": "cpp"
+  }
+}
