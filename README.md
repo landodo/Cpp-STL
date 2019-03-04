@@ -26,11 +26,11 @@
     - [vector 的迭代器](#vector的迭代器)
     - [vector 的数据结构](#vector的数据结构)
     - [vector 的构造与内存管理 constructor, push_back](#vector的构造与内存管理constructor,push_back)
-    - [vector 的元素操作 pop_back, erase, clear, insert](#vector的元素操作 pop_back,erase,clear,insert)
+    - [vector 的元素操作 pop_back, erase, clear, insert](#vector的元素操作pop_back,erase,clear,insert)
 
 ---
 
-# STL 源码剖析
+# STL源码剖析
 
 ![](images/stl-overview.png)
 
@@ -44,7 +44,7 @@ STL 源码中有着 vector、list、heap、deque、RB-tree、hash-table、set/ma
 
 SGI STL 称得上是一个一流作品，追踪一流作品并且吸取养分，远比自己关起门来写个三流作品，价值高得多。
 
-## STL 概述与版本简介
+## STL概述与版本简介
 
 ![](images/1-1.png)
 
@@ -52,17 +52,17 @@ SGI STL 称得上是一个一流作品，追踪一流作品并且吸取养分，
 
 STL 带来了一个高层次的、以泛型思维（Generic Paradigm）为基础的、系统化的、条理分明的「软件组件分类学（components taxonomy）」。
 
-### STL 的历史
+### STL的历史
 
 STL 的创始人：Alexander Stepanov。
 
 Alexander Stepanov 分别􏰄实验了多种架构和算法公式，先以 C 完成，而后再以 C++ 完成。1993 年 11 月完成正式提案，STL 成为 C++ 标准规格的一部分。
 
-### STL 与 C++ 标准链接库
+### STL与C++标准链接库
 
 Alexander 向 C++ 标准委员提交提案后，STL 在会议中取得了压倒性的胜利。STL 进入了 C++ 标准化的正式流程，C++ 链接库如 stream, string 等也都以template 重新写过 。
 
-### STL 六大组件
+### STL六大组件
 
 1. 容器（containers）
 
@@ -98,13 +98,13 @@ STL 包括重载函数调用操作符的类。类的实例称为函数对象或�
 #include <vector>
 ```
 
-### GNU 源码开放精神
+### GNU源码开放精神
 
 STL 源码属于 HP 公司拥有，每一个头文件重都有声明。开放源码的精神，一般统称为 open source。
 
 Stallman 于 1984 创立自由软件基金会（Free Software Foundation），简称FSF。
 
-### HP 版本
+### HP版本
 
 每一个 HP STL 头文件都有如下一份声明。
 
@@ -113,7 +113,7 @@ Stallman 于 1984 创立自由软件基金会（Free Software Foundation），�
  * Hewlett-Packard Company
 ```
 
-### SGI STL 版本
+### SGI-STL版本
 
 SGI 版􏰁由 Silicon Graphics Computer Systems, Inc. 公司发展，承继 HP 版􏰁。它的每一个头文件也都有 HP 的版􏰁声明。
 
@@ -175,17 +175,17 @@ src/my_allocator.h
 src/test_my_allocator.cc
 ```
 
-### 二级分配（sub-allocation）的 SGI 空间分配器
+### 二级分配（sub-allocation）的SGI空间分配器
 
 ```
 vector<int, std::allocator<int> > iv;
 ```
 
-#### SGI 标准的空间分配器 std::allocator
+#### SGI标准的空间分配器std::allocator
 
 SGI 定义有一个符合部分标准、名为 allocator 的分配器，但是效率不高，只把 C++ 的 ::operator new 和 ::operator delete 做一层封装而已。
 
-#### SGI 特殊的空间分配器 std::alloc
+#### SGI特殊的空间分配器std::alloc
 
 STL allocator 将内存申请由 alloc:allocate() 负责，内存释放由 alloc::deallocate() 负责，对象构造由::construct() 负责，对象销毁由 ::destroy() 负责。
 
@@ -196,7 +196,7 @@ STL allocator 将内存申请由 alloc:allocate() 负责，内存释放由 alloc
 #include <bits/stl_construct.h>	// 负责对象的构建与销毁
 ```
 
-#### 对象的构造和销毁：construct() 和 destroy()
+#### 对象的构造和销毁：construct()和destroy()
 
 `stl_construct.h` 中包含以下函数：
 
@@ -212,7 +212,7 @@ _Destroy(_Tp* __pointer)
 _Destroy(_ForwardIterator __first, _ForwardIterator __last)
 ```
 
-#### 空间的申请与释放 std::alloc
+#### 空间的申请与释放std::alloc
 
 空间的申请、释放由 `<malloc_allocator.h>` 负责。
 
@@ -235,15 +235,15 @@ union _Obj
 };
 ```
 
-#### 控件分配函数 allocate()
+#### 控件分配函数allocate()
 
 此函数首先判断区块大小，大于 128 bytes 就调用第一级分配器，小于 128 bytes  就检查对应的 free list。如果 free list 中有可用的区块，就直接拿来用，如果没有可用区块，就将区块大小上调至 8 倍数边界，然后呼叫refill()，准备为 free list 重新填充空间。 
 
-#### 控件释放函数 deallocate()
+#### 控件释放函数deallocate()
 
 此函数首先判断区块大小，大于 128 bytes 就调用第一级分配器，小于 128 bytes 就找出对应的 free list，将区块回收。
 
-#### 重新填充 free list
+#### 重新填充free list
 
 free list 中没有可用区块了，就呼叫 refill() 为 free list 重新填充空间。
 
@@ -300,11 +300,11 @@ STL 定义有五个函数，作用于􏰅初始化空间上。
 
 iterator：提供一种方法，是的得可以按顺序访问某个聚合物（容器）所􏰈的各个元素，而又不会暴露该聚合物（容器）的内部实现。
 
-### 迭代器的设计思维——STL 的关键
+### 迭代器的设计思维——STL的关键
 
 STL 的中心思想在于，将数据容器（containers）和算法（algorithms）分开，彼此独立设计，最后再以一种粘合剂将它们联系在一起。迭代器（iterators）就是联系容器（containers）和算法（algorithms）的粘合剂。
 
-### 迭代器是一种 smart pointer
+### 迭代器是一种smart-pointer
 
 迭代器是一种行为类似指针的对象，而指针的各种行为中最常见也最重要的便是内容提领（dereference）和成员取用（member access）。迭代器最重要的编程工作就是对 operator* 和 operator-> 进行重载（overloading）工程。
 
@@ -331,7 +331,7 @@ public:
 
 可以使用利用 function template 的自变量推导（argument deducation）机制。
 
-### Traits 编程技巧
+### Traits编程技巧
 
 ```
 src/my_iter.cc
@@ -442,7 +442,7 @@ vector 的数据安排以及操作方式，与 array 非常像似。它们之间
 
 ![](images/4-2.png)
 
-#### vector 的迭代器
+#### vector的迭代器
 
 ```c++
 typedef __gnu_cxx::__normal_iterator<pointer, vector_type> iterator;
@@ -453,7 +453,7 @@ typedef std::reverse_iterator<iterator>		 reverse_iterator;
 
 vector 支持随机存取，提供的是 Random Access Iterators。
 
-####vector 的数据结构
+####vector的数据结构
 
 vector 所采用的数据结构非常简单：线性连续空间。
 
