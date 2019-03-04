@@ -502,7 +502,7 @@ capacity=16, size=9
 capacity=16, size=10
 ```
 
-#### vector 的构造与内存管理 constructor, push_back
+#### vector的构造与内存管理 constructor, push_back
 
 vector 提供许多 constructors，其中一个允许我们指定空间大小及初值:
 
@@ -548,7 +548,7 @@ void _M_insert_aux(iterator __position, bool __x) {
 
 所谓动态增加大小，并不是在原空间之后接续新空间（因为无法保证原空间之后尚有可供插入的空间），而是以原大小的两倍另外分配一块空间，然后将原内容拷贝过来，然后才开始在原内容之后插入新元素，并释放原空间。
 
-#### vector 的元素操作 pop_back, erase, clear, insert
+#### vector的元素操作pop_back,erase,clear,insert
 
 **pop_back**
 
