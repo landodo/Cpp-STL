@@ -2,6 +2,16 @@
 
 这是我学习 STL 的笔记。
 
+**更新日志**
+
+- 2019-03-04
+
+新增了[STL 概述与版本简介](#STL 概述与版本简介)、[空间分配器（allocators）](#空间分配器（allocators）)、[迭代器（iterators）](#迭代器（iterators）)、[序列式容器-vector](#vector)
+
+- 2019-03-05
+
+增加了[list](#list)
+
 # 目录
 
 - [STL 概述与版本简介](#STL概述与版本简介)
@@ -27,6 +37,12 @@
     - [vector 的数据结构](#vector的数据结构)
     - [vector 的构造与内存管理 constructor, push_back](#vector的构造与内存管理constructor,push_back)
     - [vector 的元素操作 pop_back, erase, clear, insert](#vector的元素操作pop_back,erase,clear,insert)
+  - [list](#list)
+    - [list的节点Node](#list的节点Node)
+    - [list的迭代器](list的迭代器)
+    - [list的数据结构](#list的数据结构)
+    - [list的构造与内存管理：constructor, push_bask,insert](#list的构造与内存管理：constructor, push_bask,insert)
+    - [list的元素操作](#list的元素操作)
 
 ---
 
@@ -453,7 +469,7 @@ typedef std::reverse_iterator<iterator>		 reverse_iterator;
 
 vector 支持随机存取，提供的是 Random Access Iterators。
 
-####vector的数据结构
+#### vector的数据结构
 
 vector 所采用的数据结构非常简单：线性连续空间。
 
@@ -502,7 +518,7 @@ capacity=16, size=9
 capacity=16, size=10
 ```
 
-#### vector的构造与内存管理 constructor, push_back
+#### vector的构造与内存管理constructor,push_back
 
 vector 提供许多 constructors，其中一个允许我们指定空间大小及初值:
 
@@ -638,3 +654,313 @@ void _M_insert_aux(iterator __position, bool __x)
 	}
 }
 ```
+
+### list
+
+list 每次插入或删除一个元素，就立即分配或释放一个元素空间。list 对于空间的运用有绝对的精准，一点也不浪费。对于任何位置的元素插入或元素删除，list 永远是常数时间。可以这么理解：vector 对应数组，list 对应链表。
+
+#### list的节点Node
+
+```c++
+// stl_list.h
+struct _List_node_base
+{
+  _List_node_base* _M_next;   ///< Self-explanatory
+  _List_node_base* _M_prev;   ///< Self-explanatory
+};
+
+/// @if maint An actual node in the %list.  @endif
+template<typename _Tp>
+struct _List_node : public _List_node_base
+{
+  _Tp _M_data;                ///< User's data.
+};
+```
+
+#### list的迭代器
+
+STL 的 list 是一个双向链表（double linked-list），迭代器必须具备前移、后移的能力。所以 list 提供的是 Bidirectional Iterators。
+
+list 的一个重要性质：插入（insert）、连接（splice）不会造成原有的 list 迭代器失效。这在 vector 中是不成立的。
+
+```c++
+// stl_list.h
+
+template<typename _Tp>
+struct _List_iterator
+{
+  typedef _List_iterator<_Tp>                _Self;
+  typedef _List_node<_Tp>                    _Node;
+
+  typedef ptrdiff_t                          difference_type;
+  typedef std::bidirectional_iterator_tag    iterator_category;
+  typedef _Tp                                value_type;
+  typedef _Tp*                               pointer;
+  typedef _Tp&                               reference;
+      
+
+// 对于迭代器的取值，取的是节点的 data
+reference operator*() const
+{ 
+  return static_cast<_Node*>(_M_node)->_M_data;
+}
+// 迭代器的成员存取
+pointer operator->() const
+{ 
+  return &static_cast<_Node*>(_M_node)->_M_data;
+}
+
+
+// 跌打器加1，就是前进一个节点
+_Self& operator++()
+{
+  _M_node = _M_node->_M_next;
+  return *this;
+}
+
+// 迭代器减1，就是后退一个节点
+_Self& operator--()
+{
+  _M_node = _M_node->_M_prev;
+  return *this;
+}
+  
+};	// struct _List_iterator
+```
+
+#### list的数据结构
+
+list 是一个双向的循环链表。
+
+![](images/4-3.png)
+
+`_Node` 可以转换为迭代器类型：
+
+```c++
+protected:
+  // Note that pointers-to-_Node's can be ctor-converted to
+  // iterator types.
+  typedef _List_node<_Tp>				 _Node;
+```
+
+```c++
+// 取头节点的数值
+reference front()
+{ 
+	return *begin();
+}
+```
+
+#### list的构造与内存管理：constructor, push_bask,insert
+
+list 使用 Alloc 做为空间分配器，并另外定义了 `_Node_alloc_type` ，为的是更方便的以节点大小为分配单位。
+
+```C++
+// 使用 Alloc 做为空间分配器
+template<typename _Tp, typename _Alloc>
+
+// 每次配置一个节点大小
+typedef typename _Alloc::template rebind<_List_node<_Tp> >::other
+        _Node_alloc_type;
+```
+
+```c++
+// 分配一个节点并返回
+_List_node<_Tp>* _M_get_node()
+{ return _M_impl._Node_alloc_type::allocate(1); }
+      
+// 释放一个节点
+void _M_put_node(_List_node<_Tp>* __p)
+{ _M_impl._Node_alloc_type::deallocate(__p, 1); }
+
+// 分配一个节点，并赋初值
+_Node* _M_create_node(const value_type& __x)
+{
+	_Node* __p = this->_M_get_node();
+	try
+	{
+    _M_get_Tp_allocator().construct(&__p->_M_data, __x);
+	}
+	catch(...)
+  {
+    _M_put_node(__p);
+    __throw_exception_again;
+  }
+	return __p;
+}
+
+
+// 删除一个节点
+// Erases element at position given.
+void _M_erase(iterator __position)
+{
+  __position._M_node->unhook();
+  _Node* __n = static_cast<_Node*>(__position._M_node);
+  _M_get_Tp_allocator().destroy(&__n->_M_data);
+  _M_put_node(__n);
+}
+// new_allocator.h
+void destroy(pointer __p) { __p->~_Tp(); }
+```
+
+list 提供了很多 constructors：
+
+```C++
+explicit list(const allocator_type& __a = allocator_type())
+      : _Base(__a) { }
+```
+
+push_back() 将新元素插入到 list 的尾部：
+
+```c++
+void push_back(const value_type& __x)
+{ 
+  this->_M_insert(end(), __x);
+}
+
+// Inserts new element at position given and with value given.
+void _M_insert(iterator __position, const value_type& __x)
+{
+  _Node* __tmp = _M_create_node(__x);
+  __tmp->hook(__position._M_node);
+}
+```
+
+在 list 内的某处插入新节点，首先必须确定安插位置。
+
+```c++
+void insert(iterator __position, size_type __n, const value_type& __x)
+{  
+  list __tmp(__n, __x, _M_get_Node_allocator());
+  splice(__position, __tmp);
+}
+
+// example: 在ls链表头插入
+ls.insert(ls.begin(), 6);
+```
+
+list 不像 vector 那样有可能在空间不足时做重新分配、数据迁移的动作，所以插入前的所有迭代器在插入动作之后都仍然有效。
+
+#### list的元素操作
+
+```C++
+// 插入一个节点，作为头节点
+void push_front(const value_type& __x)
+  { this->_M_insert(begin(), __x); }
+  
+// 插入一个节点，作为尾节点
+void push_back(const value_type& __x)
+  { this->_M_insert(end(), __x); }
+
+// 删除迭代器 position 所指节点
+iterator erase(iterator __position);
+
+// 删除头节点
+void pop_front()
+  { this->_M_erase(begin()); }
+
+// 删除尾节点
+void pop_back()
+{ 
+  this->_M_erase(iterator(this->_M_impl._M_node._M_prev)); }
+
+```
+
+list 内部提供一个所谓的迁移动作（transfer），将某连续范围的元素迁移到某个特定位置之前。
+
+```c++
+// Moves the elements from [first,last) before position.
+void _M_transfer(iterator __position, iterator __first, iterator __last)
+{
+	__position._M_node->transfer(__first._M_node, __last._M_node);
+}
+```
+
+list 公开提供的是所谓的接合动作（splice）：将某连续范围的元素从一个 list 搬移到另一个（或同一个）list 的某个定点。
+
+```C++
+// 将x连接到position所指的位置之前
+void splice(iterator __position, list& __x)
+{
+	if (!__x.empty())
+  {
+    _M_check_equal_allocators(__x);
+    this->_M_transfer(__position, __x.begin(), __x.end());
+  }
+}
+
+// 将i所指元素连接到__position所指位置之前
+void splice(iterator __position, list& __x, iterator __i)
+{
+	iterator __j = __i;
+	++__j;
+	if (__position == __i || __position == __j)
+	  return;
+
+	if (this != &__x)
+	  _M_check_equal_allocators(__x);
+
+	this->_M_transfer(__position, __i, __j);
+}
+
+// 将 [first,last) 内的所有元素连接接于 position所指位置之前。
+void splice(iterator __position, list& __x, iterator __first, iterator __last)
+{
+	if (__first != __last)
+	  {
+	    if (this != &__x)
+	      _M_check_equal_allocators(__x);
+
+	    this->_M_transfer(__position, __first, __last);
+	  }
+}
+```
+
+有了 transfer()，merge()、reverse() 和 sort() 的源码并不难实现。
+
+```c++
+template<typename _Tp, typename _Alloc>
+void list<_Tp, _Alloc>::
+merge(list& __x)
+{
+  // _GLIBCXX_RESOLVE_LIB_DEFECTS
+  // 300. list::merge() specification incomplete
+  if (this != &__x)
+	{
+	  _M_check_equal_allocators(__x); 
+
+	  iterator __first1 = begin();
+	  iterator __last1 = end();
+	  iterator __first2 = __x.begin();
+	  iterator __last2 = __x.end();
+	  while (__first1 != __last1 && __first2 != __last2)
+	    if (*__first2 < *__first1)
+	      {
+          iterator __next = __first2;
+          _M_transfer(__first1, __first2, ++__next);
+          __first2 = __next;
+	      }
+	    else
+	      ++__first1;
+	  if (__first2 != __last2)
+	    _M_transfer(__last1, __first2, __last2);
+	}
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

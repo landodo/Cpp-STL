@@ -4,6 +4,14 @@
     "map": "cpp",
     "new": "cpp",
     "vector": "cpp",
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "__split_buffer": "cpp",
+    "__tree": "cpp",
+    "bitset": "cpp",
+    "initializer_list": "cpp",
+    "list": "cpp",
+    "memory": "cpp",
+    "string": "cpp",
+    "string_view": "cpp"
   }
 }
