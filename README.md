@@ -12,6 +12,10 @@
 
 增加了[list](#list)
 
+- 2019-03-06
+
+增加了 [deque](#deque)、[heap](#heap)、[priority_queue](#priority_queue)、[slist](#slist)
+
 # 目录
 
 - [STL 概述与版本简介](#STL概述与版本简介)
