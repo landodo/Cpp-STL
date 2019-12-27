@@ -158,7 +158,7 @@ Stallman 于 1984 创立自由软件基金会（Free Software Foundation），�
 
 ### SGI-STL版本
 
-SGI 版􏰁由 Silicon Graphics Computer Systems, Inc. 公司发展，承继 HP 版􏰁。它的每一个头文件也都有 HP 的版􏰁声明。
+SGI 版􏰁由 Silicon Graphics Computer Systems, Inc. 公司发展，承继 HP 版􏰁。它的每一个头文件也都有 HP 的版􏰁本声明。
 
 ```
  * Copyright (c) 1996
@@ -469,7 +469,7 @@ streambuf_iterator.h
 
 容器是大多数人对 STL 的第一印象。
 
-**序列式容器**，其中的元素都可序（ordered），但􏰅排序（sorted）。C++ 语言􏰁身提供了一个序列式容器 array，STL 另外再提供 vector, list, deque, stack, queue, priority-queue 等等序列式容器。其中 stack 和 queue 由是将 deque 改头换面而成，技术上被归类为一种适配器（adapter）。
+**序列式容器**，其中的元素都可序（ordered），但􏰅未排序（sorted）。C++ 语言本􏰁身提供了一个序列式容器 array，STL 另外再提供 vector, list, deque, stack, queue, priority-queue 等等序列式容器。其中 stack 和 queue 由是将 deque 改头换面而成，技术上被归类为一种适配器（adapter）。
 
 ### vector
 
@@ -977,7 +977,7 @@ merge(list& __x)
 
 ### deque
 
-vector 是单向开口的连续线性空间，也就是说，只能从一端进行插入。deque 则是一种双向开口的连续线性空间，可以在头尾两端分􏰁做元素的插入和删除动作。
+vector 是单向开口的连续线性空间，也就是说，只能从一端进行插入。deque 则是一种双向开口的连续线性空间，可以在头尾两端分别􏰁做元素的插入和删除动作。
 
 ![](images/4-4.png)
 
@@ -1703,8 +1703,6 @@ slist 和 list 共同具有的一个相同特色是，它们的插入（insert�
     { _M_node = _M_node->_M_next; }
 
     // ....
-
-
   };
 
   //单向串行的迭代器结构
